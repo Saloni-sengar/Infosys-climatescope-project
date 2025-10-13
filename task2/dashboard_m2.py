@@ -104,21 +104,25 @@ st.subheader("🌍 Regional / Country Comparison")
 region_cols = [c for c in df.columns if c.lower() in ["region", "country", "continent"]]
 if region_cols:
     region_col = region_cols[0]
-    group_stats = df.groupby(region_col)[["temperature_celsius", "humidity", "precipitation"]].mean(numeric_only=True).reset_index()
-    st.dataframe(group_stats.head())
+    cols_to_use = [c for c in ["temperature_celsius", "humidity", "precipitation"] if c in df.columns]
+    if cols_to_use:
+        group_stats = df.groupby(region_col)[cols_to_use].mean(numeric_only=True).reset_index()
+        st.dataframe(group_stats.head())
 
-    fig_region = px.bar(
-        group_stats,
-        x=region_col,
-        y="temperature_celsius",
-        title="Average Temperature by Region",
-        color="temperature_celsius",
-        color_continuous_scale="Viridis"
-    )
-    st.plotly_chart(fig_region, use_container_width=True)
+        fig_region = px.bar(
+            group_stats,
+            x=region_col,
+            y=cols_to_use[0],
+            title=f"Average {cols_to_use[0].replace('_',' ').title()} by Region",
+            color=cols_to_use[0],
+            color_continuous_scale="Viridis"
+        )
+        st.plotly_chart(fig_region, use_container_width=True)
 
-    group_stats.to_csv("data/region_summary.csv", index=False)
-    st.info("Regional summary saved as data/region_summary.csv")
+        group_stats.to_csv("data/region_summary.csv", index=False)
+        st.info("Regional summary saved as data/region_summary.csv")
+    else:
+        st.warning("No valid columns found for regional comparison.")
 else:
     st.warning("No region or country column found!")
 
